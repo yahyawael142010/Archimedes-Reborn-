@@ -1,0 +1,1029 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Archimedes Reborn — Spiral Wind Turbine with Wind Lens</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow:wght@300;400;500;600;700&family=Barlow+Condensed:wght@300;400;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --sky: #0a9fd4;
+    --deep: #05293d;
+    --midnight: #061825;
+    --accent: #f5c842;
+    --white: #f0f8ff;
+    --glass: rgba(10,159,212,0.12);
+    --border: rgba(10,159,212,0.3);
+  }
+
+  * { margin:0; padding:0; box-sizing:border-box; }
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--midnight);
+    color: var(--white);
+    font-family: 'Barlow', sans-serif;
+    overflow-x: hidden;
+  }
+
+  body::before {
+    content:'';
+    position:fixed; inset:0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+    pointer-events:none; z-index:0; opacity:.4;
+  }
+
+  /* NAV */
+  nav {
+    position:fixed; top:0; left:0; right:0; z-index:999;
+    display:flex; align-items:center; justify-content:space-between;
+    padding:18px 60px;
+    background: rgba(6,24,37,0.85);
+    backdrop-filter: blur(14px);
+    border-bottom: 1px solid var(--border);
+  }
+  .nav-logo {
+    font-family:'Bebas Neue'; font-size:1.6rem;
+    letter-spacing:.12em; color:var(--sky);
+  }
+  .nav-logo span { color:var(--accent); }
+  .nav-links { display:flex; gap:32px; list-style:none; }
+  .nav-links a {
+    font-family:'Barlow Condensed'; font-size:.95rem; letter-spacing:.08em;
+    text-transform:uppercase; color:rgba(240,248,255,.65);
+    text-decoration:none; transition: color .25s;
+  }
+  .nav-links a:hover { color:var(--sky); }
+
+  /* HERO */
+  #hero {
+    position:relative; min-height:100vh;
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
+    overflow:hidden; padding:80px 40px 60px;
+    text-align:center;
+  }
+  .hero-bg {
+    position:absolute; inset:0;
+    background: radial-gradient(ellipse 70% 60% at 50% 40%, rgba(10,159,212,.18) 0%, transparent 70%),
+                linear-gradient(175deg, #061825 0%, #05293d 55%, #061825 100%);
+  }
+  .wind-lines { position:absolute; inset:0; overflow:hidden; pointer-events:none; }
+  .wl {
+    position:absolute; height:1px;
+    background: linear-gradient(90deg, transparent, rgba(10,159,212,.5), transparent);
+    animation: windMove 4s linear infinite;
+    opacity:0;
+  }
+  @keyframes windMove {
+    0%   { transform:translateX(-120%); opacity:0; }
+    10%  { opacity:1; }
+    90%  { opacity:.6; }
+    100% { transform:translateX(120%); opacity:0; }
+  }
+
+  .hero-tag {
+    font-family:'Barlow Condensed'; font-size:.85rem; letter-spacing:.3em;
+    text-transform:uppercase; color:var(--sky); opacity:.8;
+    margin-bottom:14px; position:relative; z-index:2;
+  }
+  .hero-title {
+    font-family:'Bebas Neue'; font-size:clamp(4rem,10vw,9rem);
+    letter-spacing:.06em; line-height:.95;
+    position:relative; z-index:2;
+    background: linear-gradient(135deg, #fff 30%, var(--sky) 70%);
+    -webkit-background-clip:text; -webkit-text-fill-color:transparent;
+    background-clip:text;
+    animation: fadeUp .8s ease both;
+  }
+  .hero-sub {
+    font-family:'Bebas Neue'; font-size:clamp(1.4rem,3vw,2.4rem);
+    letter-spacing:.25em; color:var(--sky);
+    margin:8px 0 24px; position:relative; z-index:2;
+    animation: fadeUp .8s .15s ease both;
+  }
+  .hero-desc {
+    max-width:600px; font-size:1.05rem; line-height:1.7;
+    color:rgba(240,248,255,.7); position:relative; z-index:2;
+    animation: fadeUp .8s .3s ease both;
+  }
+  @keyframes fadeUp {
+    from { opacity:0; transform:translateY(28px); }
+    to   { opacity:1; transform:translateY(0); }
+  }
+  .hero-stats {
+    display:flex; gap:48px; margin-top:48px;
+    position:relative; z-index:2;
+    animation: fadeUp .8s .45s ease both;
+    flex-wrap:wrap; justify-content:center;
+  }
+  .stat {
+    text-align:center;
+    border: 1px solid var(--border);
+    background: var(--glass);
+    backdrop-filter:blur(8px);
+    padding:20px 28px; border-radius:4px;
+  }
+  .stat-val { font-family:'Bebas Neue'; font-size:2.6rem; color:var(--accent); line-height:1; }
+  .stat-lbl { font-size:.75rem; letter-spacing:.15em; text-transform:uppercase; opacity:.6; margin-top:4px; }
+  .scroll-cue {
+    position:absolute; bottom:32px; left:50%; transform:translateX(-50%);
+    display:flex; flex-direction:column; align-items:center; gap:8px;
+    font-family:'Barlow Condensed'; font-size:.8rem; letter-spacing:.2em;
+    text-transform:uppercase; opacity:.45; z-index:2;
+    animation: bounce 2s ease infinite;
+  }
+  @keyframes bounce { 0%,100%{transform:translateX(-50%) translateY(0)} 50%{transform:translateX(-50%) translateY(6px)} }
+
+  /* SECTION SHELL */
+  section { position:relative; z-index:1; }
+  .section-inner { max-width:1100px; margin:0 auto; padding:100px 40px; }
+  .section-eyebrow {
+    font-family:'Barlow Condensed'; font-size:.8rem; letter-spacing:.35em;
+    text-transform:uppercase; color:var(--sky); margin-bottom:12px; display:block;
+  }
+  .section-title {
+    font-family:'Bebas Neue'; font-size:clamp(2.8rem,6vw,5rem);
+    letter-spacing:.06em; line-height:1; margin-bottom:40px;
+  }
+  .divider {
+    width:60px; height:3px;
+    background:linear-gradient(90deg,var(--sky),var(--accent));
+    margin-bottom:40px;
+  }
+
+  /* ABSTRACT */
+  #abstract { background:linear-gradient(180deg,var(--midnight) 0%,#061e30 100%); }
+  .abstract-grid { display:grid; grid-template-columns:1fr 1fr; gap:60px; align-items:start; }
+  .abstract-text { font-size:1.05rem; line-height:1.85; color:rgba(240,248,255,.8); }
+  .abstract-text p + p { margin-top:18px; }
+  .challenge-pills { display:flex; flex-wrap:wrap; gap:10px; margin-top:24px; }
+  .pill {
+    background:var(--glass); border:1px solid var(--border);
+    padding:6px 16px; border-radius:2px;
+    font-family:'Barlow Condensed'; font-size:.85rem; letter-spacing:.1em;
+    text-transform:uppercase; color:var(--sky);
+  }
+  .key-numbers { display:grid; grid-template-columns:1fr 1fr; gap:20px; }
+  .kn-card {
+    background:var(--glass); border:1px solid var(--border);
+    padding:24px; border-radius:4px;
+    transition: border-color .3s, transform .3s;
+  }
+  .kn-card:hover { border-color:var(--sky); transform:translateY(-4px); }
+  .kn-val { font-family:'Bebas Neue'; font-size:2.8rem; color:var(--accent); line-height:1; }
+  .kn-lbl { font-size:.85rem; color:rgba(240,248,255,.6); margin-top:6px; line-height:1.4; }
+
+  /* INTRO / PROBLEM */
+  #intro { background:#061e30; }
+  .problem-cards { display:grid; grid-template-columns:repeat(3,1fr); gap:24px; margin-top:20px; }
+  .pc {
+    background:var(--glass); border:1px solid var(--border);
+    padding:28px; border-radius:4px; position:relative; overflow:hidden;
+    transition: border-color .3s, transform .3s;
+  }
+  .pc::before {
+    content:''; position:absolute; top:0; left:0; right:0; height:3px;
+    background:linear-gradient(90deg,var(--sky),var(--accent));
+    transform:scaleX(0); transform-origin:left; transition: transform .4s;
+  }
+  .pc:hover::before { transform:scaleX(1); }
+  .pc:hover { border-color:var(--sky); transform:translateY(-4px); }
+  .pc-icon { font-size:2rem; margin-bottom:16px; }
+  .pc-title { font-family:'Barlow Condensed'; font-size:1.1rem; letter-spacing:.1em; text-transform:uppercase; color:var(--sky); margin-bottom:10px; }
+  .pc-text { font-size:.9rem; line-height:1.7; color:rgba(240,248,255,.7); }
+  .pc-stat { font-family:'Bebas Neue'; font-size:2rem; color:var(--accent); margin-top:12px; }
+
+  /* DESIGN */
+  #design { background:var(--midnight); }
+  .design-grid { display:grid; grid-template-columns:1fr 1fr; gap:60px; }
+  .design-feature {
+    display:flex; gap:20px; padding:24px;
+    background:var(--glass); border:1px solid var(--border); border-radius:4px;
+    margin-bottom:20px; transition: border-color .3s;
+  }
+  .design-feature:hover { border-color:var(--sky); }
+  .df-num { font-family:'Bebas Neue'; font-size:3rem; color:var(--border); line-height:1; min-width:50px; }
+  .df-title { font-family:'Barlow Condensed'; font-size:1rem; letter-spacing:.1em; text-transform:uppercase; color:var(--sky); margin-bottom:6px; }
+  .df-text { font-size:.9rem; line-height:1.7; color:rgba(240,248,255,.7); }
+
+  /* RESULTS */
+  #results { background:var(--midnight); }
+  .results-grid { display:grid; grid-template-columns:1fr 1fr; gap:40px; }
+  .result-card {
+    background:var(--glass); border:1px solid var(--border); border-radius:4px;
+    padding:32px; text-align:center;
+    transition: border-color .3s, transform .3s;
+  }
+  .result-card:hover { border-color:var(--accent); transform:translateY(-5px); }
+  .result-label { font-family:'Barlow Condensed'; font-size:.85rem; letter-spacing:.2em; text-transform:uppercase; color:rgba(240,248,255,.5); margin-bottom:16px; }
+  .result-compare { display:flex; gap:24px; justify-content:center; align-items:flex-end; }
+  .rc-before .rc-val { color:rgba(240,248,255,.4); }
+  .rc-after .rc-val { color:var(--accent); }
+  .rc-val { font-family:'Bebas Neue'; font-size:3.2rem; line-height:1; }
+  .rc-unit { font-size:.8rem; color:rgba(240,248,255,.4); margin-top:4px; }
+  .rc-lbl { font-size:.75rem; letter-spacing:.1em; text-transform:uppercase; opacity:.5; margin-top:2px; }
+  .arrow-right { font-size:1.5rem; color:var(--sky); margin-bottom:16px; opacity:.6; }
+  .improvement-bar-wrap { margin-top:40px; }
+  .ib-label { display:flex; justify-content:space-between; font-size:.85rem; margin-bottom:8px; }
+  .ib-label span:last-child { color:var(--accent); font-weight:600; }
+  .ib-track { background:rgba(255,255,255,.1); border-radius:2px; height:8px; overflow:hidden; }
+  .ib-fill {
+    height:100%; border-radius:2px;
+    background:linear-gradient(90deg,var(--sky),var(--accent));
+    animation: fillBar 2s ease forwards;
+    width:0;
+  }
+  @keyframes fillBar { to { width:var(--pct); } }
+
+  /* ANALYSIS */
+  #analysis { background:#061e30; }
+  .analysis-tabs { display:flex; gap:4px; margin-bottom:32px; flex-wrap:wrap; }
+  .tab-btn {
+    font-family:'Barlow Condensed'; font-size:.85rem; letter-spacing:.1em; text-transform:uppercase;
+    padding:10px 22px; background:transparent; border:1px solid var(--border);
+    color:rgba(240,248,255,.5); cursor:pointer; border-radius:2px; transition:all .25s;
+  }
+  .tab-btn.active, .tab-btn:hover { background:var(--sky); border-color:var(--sky); color:#fff; }
+  .tab-panel { display:none; animation: fadeIn .4s ease; }
+  .tab-panel.active { display:block; }
+  @keyframes fadeIn { from{opacity:0;transform:translateY(10px)} to{opacity:1;transform:translateY(0)} }
+  .eq-block {
+    background:var(--glass); border:1px solid var(--border); border-radius:4px;
+    padding:24px; margin:20px 0; font-family:monospace;
+    font-size:1.05rem; color:var(--accent); text-align:center; letter-spacing:.05em;
+  }
+  .eq-desc { font-size:.85rem; color:rgba(240,248,255,.6); margin-top:8px; text-align:center; font-family:'Barlow'; }
+  .analysis-prose { font-size:1rem; line-height:1.8; color:rgba(240,248,255,.8); }
+  .analysis-prose + .analysis-prose { margin-top:18px; }
+
+  /* CONCLUSION */
+  #conclusion { background:var(--midnight); }
+  .rec-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:24px; margin-top:12px; }
+  .rec-card {
+    background:var(--glass); border:1px solid var(--border); border-radius:4px;
+    padding:28px; transition: border-color .3s, transform .3s; position:relative; overflow:hidden;
+  }
+  .rec-card::after {
+    content:''; position:absolute; bottom:0; left:0; right:0; height:2px;
+    background:linear-gradient(90deg,var(--sky),var(--accent));
+    transform:scaleX(0); transition:transform .4s; transform-origin:left;
+  }
+  .rec-card:hover::after { transform:scaleX(1); }
+  .rec-card:hover { border-color:var(--sky); transform:translateY(-4px); }
+  .rec-icon { font-size:2rem; margin-bottom:14px; }
+  .rec-title { font-family:'Barlow Condensed'; font-size:1rem; letter-spacing:.1em; text-transform:uppercase; color:var(--sky); margin-bottom:10px; }
+  .rec-text { font-size:.88rem; line-height:1.7; color:rgba(240,248,255,.7); }
+
+  /* TEAM */
+  #team { background:#061e30; }
+  .team-grid { display:flex; flex-wrap:wrap; gap:24px; justify-content:center; margin-top:12px; }
+  .member-card {
+    background:var(--glass); border:1px solid var(--border);
+    border-radius:4px; width:200px; cursor:pointer;
+    transition: border-color .3s, transform .3s;
+    overflow:hidden; position:relative;
+  }
+  .member-card:hover { border-color:var(--sky); transform:translateY(-6px); }
+  .member-avatar {
+    width:100%; height:180px;
+    display:flex; align-items:center; justify-content:center;
+    background:linear-gradient(135deg,rgba(10,159,212,.2),rgba(5,41,61,.8));
+    overflow:hidden;
+  }
+  .member-avatar img {
+    width:100%; height:100%; object-fit:cover; object-position:top center;
+    transition: transform .4s ease;
+  }
+  .member-card:hover .member-avatar img { transform:scale(1.06); }
+  .member-info { padding:16px; }
+  .member-name { font-family:'Barlow Condensed'; font-size:1rem; letter-spacing:.08em; text-transform:uppercase; color:#fff; }
+  .member-role { font-size:.75rem; color:var(--sky); margin-top:4px; opacity:.8; }
+  .member-id { font-family:'Bebas Neue'; font-size:.95rem; color:var(--accent); margin-top:4px; }
+
+  /* MATERIALS TABLE */
+  .materials-table { width:100%; border-collapse:collapse; margin-top:12px; }
+  .materials-table th {
+    font-family:'Barlow Condensed'; font-size:.8rem; letter-spacing:.2em;
+    text-transform:uppercase; color:var(--sky); padding:14px 20px;
+    border-bottom:2px solid var(--border); text-align:left;
+  }
+  .materials-table td {
+    padding:14px 20px; border-bottom:1px solid rgba(10,159,212,.12);
+    font-size:.9rem; color:rgba(240,248,255,.8);
+    transition:background .2s;
+  }
+  .materials-table tr:hover td { background:var(--glass); }
+  .mat-badge {
+    display:inline-block; background:var(--glass); border:1px solid var(--border);
+    padding:3px 10px; border-radius:2px; font-size:.75rem; color:var(--sky);
+    font-family:'Barlow Condensed'; letter-spacing:.08em;
+  }
+
+  /* FOOTER */
+  footer {
+    background:var(--deep); border-top:1px solid var(--border);
+    padding:40px; text-align:center;
+  }
+  .footer-logo { font-family:'Bebas Neue'; font-size:2rem; letter-spacing:.1em; color:var(--sky); }
+  .footer-logo span { color:var(--accent); }
+  .footer-meta { font-size:.8rem; color:rgba(240,248,255,.35); margin-top:10px; letter-spacing:.05em; }
+  .footer-school { font-family:'Barlow Condensed'; font-size:.85rem; letter-spacing:.15em; text-transform:uppercase; color:rgba(240,248,255,.4); margin-top:6px; }
+
+  @media (max-width:768px) {
+    nav { padding:16px 24px; }
+    .nav-links { display:none; }
+    .abstract-grid, .design-grid, .results-grid, .problem-cards, .rec-grid { grid-template-columns:1fr; }
+    .hero-stats { flex-direction:column; gap:16px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <div class="nav-logo">ARCHIMEDES <span>REBORN</span></div>
+  <ul class="nav-links">
+    <li><a href="#abstract">Abstract</a></li>
+    <li><a href="#intro">Problem</a></li>
+    <li><a href="#design">Design</a></li>
+    <li><a href="#results">Results</a></li>
+    <li><a href="#analysis">Analysis</a></li>
+    <li><a href="#conclusion">Conclusions</a></li>
+    <li><a href="#team">Team</a></li>
+  </ul>
+</nav>
+
+<!-- HERO -->
+<section id="hero">
+  <div class="hero-bg"></div>
+  <div class="wind-lines" id="windLines"></div>
+
+  <div class="hero-tag">STEM High School for Boys · 6th of October · Grade 10 · 2025/2026 · Project #10112</div>
+  <h1 class="hero-title">ARCHIMEDES<br>REBORN</h1>
+  <div class="hero-sub">Spiral Wind Turbine + Wind Lens Enhancement</div>
+  <p class="hero-desc">An Archimedes Spiral Wind Turbine enhanced with a wind lens to solve the energy crisis in Ras-Banas — generating clean, reliable electricity where diesel generators once dominated.</p>
+
+  <div class="hero-stats">
+    <div class="stat">
+      <div class="stat-val">221.7 J</div>
+      <div class="stat-lbl">Energy in 5 min (enhanced)</div>
+    </div>
+    <div class="stat">
+      <div class="stat-val">80%</div>
+      <div class="stat-lbl">Efficiency Improvement</div>
+    </div>
+    <div class="stat">
+      <div class="stat-val">0.22 m³</div>
+      <div class="stat-lbl">Prototype Volume</div>
+    </div>
+    <div class="stat">
+      <div class="stat-val">2 m/s</div>
+      <div class="stat-lbl">Cut-in Wind Speed</div>
+    </div>
+  </div>
+
+  <div class="scroll-cue">
+    <span>Scroll</span>
+    <svg width="16" height="20" viewBox="0 0 16 20"><path d="M8 0v16M1 10l7 8 7-8" stroke="currentColor" stroke-width="1.5" fill="none"/></svg>
+  </div>
+</section>
+
+<!-- ABSTRACT -->
+<section id="abstract">
+  <div class="section-inner">
+    <span class="section-eyebrow">01 — Abstract</span>
+    <h2 class="section-title">The Mission</h2>
+    <div class="divider"></div>
+    <div class="abstract-grid">
+      <div>
+        <div class="abstract-text">
+          <p>Egypt's development is tackled by several grand challenges. This project addresses <strong>improving the use of alternative energies</strong> and reducing and adapting to the effects of climate change. With less than <strong>5% usage</strong> of renewable and alternative sources, Egypt's reliance on fossil fuels leads to increased greenhouse gas emissions and a rising annual average temperature of <strong>0.4°C per year</strong>.</p>
+          <p>The specific problem addressed is the <strong>inadequacy of electrical infrastructure and heavy dependence on diesel generators</strong> in Ras-Banas, Red Sea Governorate — causing difficulty in all aspects of life for its residents.</p>
+          <p>The solution is an <strong>Archimedes Spiral Wind Turbine (ASWT)</strong> enhanced by adding a wind lens, dramatically increasing efficiency by 80%. The prototype generated 221.7 J in 5 minutes — exceeding the 150 J design requirement by over 40%.</p>
+        </div>
+        <div class="challenge-pills" style="margin-top:24px">
+          <span class="pill">Alternative Energy</span>
+          <span class="pill">Climate Change</span>
+          <span class="pill">Ras-Banas</span>
+          <span class="pill">Wind Lens</span>
+          <span class="pill">ASWT</span>
+          <span class="pill">SDGs</span>
+        </div>
+      </div>
+      <div class="key-numbers">
+        <div class="kn-card">
+          <div class="kn-val">221.7 J</div>
+          <div class="kn-lbl">Energy output in 5 min — after enhancement</div>
+        </div>
+        <div class="kn-card">
+          <div class="kn-val">80%</div>
+          <div class="kn-lbl">Efficiency increase after adding wind lens</div>
+        </div>
+        <div class="kn-card">
+          <div class="kn-val">0.22 m³</div>
+          <div class="kn-lbl">Prototype volume — within 0.25 m³ constraint</div>
+        </div>
+        <div class="kn-card">
+          <div class="kn-val">7.5 m/s</div>
+          <div class="kn-lbl">Terminal wind velocity exiting concentrator</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- INTRO / PROBLEM -->
+<section id="intro">
+  <div class="section-inner">
+    <span class="section-eyebrow">02 — Introduction & Problem</span>
+    <h2 class="section-title">The Energy Crisis</h2>
+    <div class="divider"></div>
+    <p style="font-size:1.05rem;line-height:1.8;color:rgba(240,248,255,.8);max-width:800px;margin-bottom:40px">
+      Ras-Banas peninsula, located south of Marsa Alam in the Red Sea Governorate (23.9667°N, 35.5000°E), suffers from weak infrastructure that prevents electricity import from neighboring governorates. The area has a measured average wind speed of 6.23 m/s — ideal for wind turbine deployment. Prior solutions studied include the Gabal El-Zeit Wind Farm (efficient but requires high start speed) and Aswan's High Dam (stable flow but requires significant hydraulic head). The ASWT overcomes both limitations.
+    </p>
+    <div class="problem-cards">
+      <div class="pc">
+        <div class="pc-icon">🛢️</div>
+        <div class="pc-title">Diesel Dependency</div>
+        <div class="pc-text">Ras-Banas relies entirely on diesel generators for power generation, suffering from fuel contamination, oil leaks, overheating, and unstable output — making life difficult in all aspects.</div>
+        <div class="pc-stat">No Grid</div>
+      </div>
+      <div class="pc">
+        <div class="pc-icon">🌡️</div>
+        <div class="pc-title">Climate Change</div>
+        <div class="pc-text">Egypt's average temperature rises by 0.4°C annually due to fossil fuel dependence. Greenhouse gas emissions continue to climb as population and energy demand increase.</div>
+        <div class="pc-stat">+0.4°C/yr</div>
+      </div>
+      <div class="pc">
+        <div class="pc-icon">⚡</div>
+        <div class="pc-title">Weak Infrastructure</div>
+        <div class="pc-text">Inadequate electrical infrastructure with recurrent power outages has led to low development rates in Ras-Banas, hampering economic activity, healthcare, and quality of life.</div>
+        <div class="pc-stat">&lt;5% RE</div>
+      </div>
+    </div>
+
+    <div style="margin-top:60px">
+      <h3 style="font-family:'Bebas Neue';font-size:2rem;letter-spacing:.06em;margin-bottom:24px;color:var(--sky)">Design Requirements</h3>
+      <div class="problem-cards">
+        <div class="pc">
+          <div class="pc-icon">🎯</div>
+          <div class="pc-title">Energy Output</div>
+          <div class="pc-text">Prototype must produce at least 150 J within 5 minutes and demonstrate a minimum 10% efficiency improvement after enhancement via wind lens addition.</div>
+        </div>
+        <div class="pc">
+          <div class="pc-icon">📦</div>
+          <div class="pc-title">Volume Constraint</div>
+          <div class="pc-text">The prototype's overall volume must not exceed 0.25 m³. The final design with 18 cm diameter turbine achieves a total volume of 0.22 m³.</div>
+        </div>
+        <div class="pc">
+          <div class="pc-icon">📊</div>
+          <div class="pc-title">Data Recording</div>
+          <div class="pc-text">Must identify and record the relationship between input (wind speed) and output variables (voltage, current, power) both before and after enhancement.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- DESIGN / MATERIALS -->
+<section id="design">
+  <div class="section-inner">
+    <span class="section-eyebrow">03 — Materials & Design</span>
+    <h2 class="section-title">The Prototype</h2>
+    <div class="divider"></div>
+    <div class="design-grid">
+      <div>
+        <h3 style="font-family:'Barlow Condensed';font-size:1rem;letter-spacing:.2em;text-transform:uppercase;color:var(--sky);margin-bottom:24px">Key Components</h3>
+        <div class="design-feature">
+          <div class="df-num">01</div>
+          <div><div class="df-title">Archimedes Spiral Blades (3×)</div><div class="df-text">Three spiral blades cut from polyethylene (PE) plastic buckets, shaped using a 3D-printed blade frame. Blades were heat-flattened then glued to the PLA+ 3D-printed shaft. Turbine diameter: 18 cm.</div></div>
+        </div>
+        <div class="design-feature">
+          <div class="df-num">02</div>
+          <div><div class="df-title">Wind Lens (Aluminum)</div><div class="df-text">Multi-section aluminum wind lens comprising a flange, converging concentrator, cylindrical connecting section, and diverging diffuser. Cut by laser cutter, bolted and screwed together. Accelerates inlet wind to ~7.5 m/s.</div></div>
+        </div>
+        <div class="design-feature">
+          <div class="df-num">03</div>
+          <div><div class="df-title">3D-Printed Shaft & Supports</div><div class="df-text">PLA+ 3D-printed shaft (in two segments joined by a mortise-and-tenon joint), turbine holders, and blade frame. A 6004-2rs ball bearing reduces friction at the front of the shaft.</div></div>
+        </div>
+        <div class="design-feature">
+          <div class="df-num">04</div>
+          <div><div class="df-title">300 RPM DC Motor & Base</div><div class="df-text">Motor shaft inserted into the rear of the turbine shaft to generate electricity. Plywood supports hold both the ASWT and wind lens assembly, with all components fixed using M6 hex bolts.</div></div>
+        </div>
+      </div>
+      <div>
+        <h3 style="font-family:'Barlow Condensed';font-size:1rem;letter-spacing:.2em;text-transform:uppercase;color:var(--sky);margin-bottom:24px">Materials Used</h3>
+        <table class="materials-table">
+          <thead>
+            <tr>
+              <th>Material</th>
+              <th>Usage</th>
+              <th>Type</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td>PE Plastic Bucket</td><td>Turbine blades</td><td><span class="mat-badge">Structural</span></td></tr>
+            <tr><td>1m×2m Aluminum Sheet</td><td>Wind lens construction</td><td><span class="mat-badge">Structural</span></td></tr>
+            <tr><td>PLA+ 3D Filament</td><td>Shaft, supports, blade frame</td><td><span class="mat-badge">Printed</span></td></tr>
+            <tr><td>300 RPM DC Motor</td><td>Electricity generation</td><td><span class="mat-badge">Component</span></td></tr>
+            <tr><td>6004-2rs Ball Bearing</td><td>Friction reduction</td><td><span class="mat-badge">Component</span></td></tr>
+            <tr><td>M6 Hex Bolts (6mm)</td><td>Assembly fastening</td><td><span class="mat-badge">Hardware</span></td></tr>
+            <tr><td>Self-tapping Screws (2cm)</td><td>Wind lens section joining</td><td><span class="mat-badge">Hardware</span></td></tr>
+            <tr><td>MDF Adhesive / Kit</td><td>Blade attachment to shaft</td><td><span class="mat-badge">Adhesive</span></td></tr>
+            <tr><td>6mm Plywood</td><td>Primary supports for lens & ASWT</td><td><span class="mat-badge">Structural</span></td></tr>
+          </tbody>
+        </table>
+        <div style="margin-top:20px;background:var(--glass);border:1px solid var(--border);border-radius:4px;padding:20px">
+          <div style="font-family:'Barlow Condensed';font-size:.85rem;letter-spacing:.15em;text-transform:uppercase;color:var(--sky);margin-bottom:12px">Construction Method</div>
+          <div style="font-size:.88rem;line-height:1.75;color:rgba(240,248,255,.75)">
+            3D design in CAD → plastic buckets cut & heat-flattened → blade frame 3D printed → blades cut & glued to shaft → motor inserted + bearing fitted → aluminum sheet laser-cut into wind lens sections → sections bolted into cylinder/cone shapes → sections screwed together → plywood supports cut → all parts assembled with M6 hex bolts.
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- RESULTS -->
+<section id="results">
+  <div class="section-inner">
+    <span class="section-eyebrow">04 — Test Results</span>
+    <h2 class="section-title">The Numbers</h2>
+    <div class="divider"></div>
+    <p style="font-size:1rem;line-height:1.8;color:rgba(240,248,255,.75);max-width:700px;margin-bottom:40px">
+      Testing was conducted at a height of 4.5 meters. A multimeter measured current intensity and voltage both before and after installing the wind lens enhancement. The prototype was tested under real wind conditions at Ras-Banas wind speed range. Output power alternated between 0.5 and 2.3 watts, and the prototype showed no deformation under solar heat.
+    </p>
+    <div class="results-grid">
+      <div class="result-card">
+        <div class="result-label">Energy Output (5 minutes)</div>
+        <div class="result-compare">
+          <div class="rc-before">
+            <div class="rc-val">~74</div>
+            <div class="rc-unit">J</div>
+            <div class="rc-lbl">Before</div>
+          </div>
+          <div class="arrow-right">→</div>
+          <div class="rc-after">
+            <div class="rc-val">221.7</div>
+            <div class="rc-unit">J</div>
+            <div class="rc-lbl">After</div>
+          </div>
+        </div>
+      </div>
+      <div class="result-card">
+        <div class="result-label">System Efficiency (η)</div>
+        <div class="result-compare">
+          <div class="rc-before">
+            <div class="rc-val">0.208</div>
+            <div class="rc-unit">η</div>
+            <div class="rc-lbl">Before</div>
+          </div>
+          <div class="arrow-right">→</div>
+          <div class="rc-after">
+            <div class="rc-val">0.38</div>
+            <div class="rc-unit">η</div>
+            <div class="rc-lbl">After</div>
+          </div>
+        </div>
+      </div>
+      <div class="result-card">
+        <div class="result-label">Power Output (Watts)</div>
+        <div class="result-compare">
+          <div class="rc-before">
+            <div class="rc-val">~0.5</div>
+            <div class="rc-unit">W</div>
+            <div class="rc-lbl">Minimum</div>
+          </div>
+          <div class="arrow-right">→</div>
+          <div class="rc-after">
+            <div class="rc-val">2.3</div>
+            <div class="rc-unit">W</div>
+            <div class="rc-lbl">Peak</div>
+          </div>
+        </div>
+      </div>
+      <div class="result-card">
+        <div class="result-label">Enhancement Performance</div>
+        <div class="result-compare">
+          <div class="rc-before">
+            <div class="rc-val">+40%</div>
+            <div class="rc-unit">vs req.</div>
+            <div class="rc-lbl">Over 150 J target</div>
+          </div>
+          <div class="arrow-right">→</div>
+          <div class="rc-after">
+            <div class="rc-val">+80%</div>
+            <div class="rc-unit">boost</div>
+            <div class="rc-lbl">Wind Lens gain</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="improvement-bar-wrap">
+      <div style="font-family:'Barlow Condensed';font-size:.85rem;letter-spacing:.2em;text-transform:uppercase;color:var(--sky);margin-bottom:20px">Performance vs Design Requirements</div>
+      <div style="margin-bottom:16px">
+        <div class="ib-label"><span>Energy Output</span><span>221.7 J / 150 J target</span></div>
+        <div class="ib-track"><div class="ib-fill" style="--pct:100%"></div></div>
+      </div>
+      <div style="margin-bottom:16px">
+        <div class="ib-label"><span>Enhancement Improvement</span><span>80% / 10% target</span></div>
+        <div class="ib-track"><div class="ib-fill" style="--pct:100%"></div></div>
+      </div>
+      <div style="margin-bottom:16px">
+        <div class="ib-label"><span>Volume Compliance</span><span>0.22 m³ / 0.25 m³ limit</span></div>
+        <div class="ib-track"><div class="ib-fill" style="--pct:88%"></div></div>
+      </div>
+      <div>
+        <div class="ib-label"><span>System Efficiency (after)</span><span>38%</span></div>
+        <div class="ib-track"><div class="ib-fill" style="--pct:38%"></div></div>
+      </div>
+    </div>
+
+    <div style="margin-top:40px">
+      <h3 style="font-family:'Bebas Neue';font-size:1.8rem;letter-spacing:.06em;margin-bottom:20px;color:var(--sky)">Negative Results & Fixes</h3>
+      <div class="problem-cards">
+        <div class="pc">
+          <div class="pc-icon">📐</div>
+          <div class="pc-title">Volume Exceeded</div>
+          <div class="pc-text">Original 22 cm diameter turbine caused total volume to reach 0.5 m³ — double the permitted limit. Rebuilt with 18 cm diameter, achieving 0.22 m³.</div>
+        </div>
+        <div class="pc">
+          <div class="pc-icon">🔧</div>
+          <div class="pc-title">Blade Detachment</div>
+          <div class="pc-text">One blade detached from the shaft during construction. Re-attached with MDF adhesive kit. Motor shaft couldn't fit — solved by carving with soldering iron.</div>
+        </div>
+        <div class="pc">
+          <div class="pc-icon">💥</div>
+          <div class="pc-title">Blade Breakage</div>
+          <div class="pc-text">A blade broke during high-wind testing. Re-attached using two-part epoxy adhesive. Prototype subsequently remained intact and functionally stable.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ANALYSIS -->
+<section id="analysis">
+  <div class="section-inner">
+    <span class="section-eyebrow">05 — Analysis</span>
+    <h2 class="section-title">The Science</h2>
+    <div class="divider"></div>
+    <div class="analysis-tabs">
+      <button class="tab-btn active" onclick="showTab('aswt')">ASWT Aerodynamics</button>
+      <button class="tab-btn" onclick="showTab('windlens')">Wind Lens</button>
+      <button class="tab-btn" onclick="showTab('tsr')">TSR & Torque</button>
+      <button class="tab-btn" onclick="showTab('energy')">Energy Flow</button>
+    </div>
+
+    <div id="tab-aswt" class="tab-panel active">
+      <p class="analysis-prose">The Archimedes Spiral Wind Turbine (ASWT) is an innovative Horizontal Axis Wind Turbine whose blades follow the Archimedes Spiral curve — also known as the Arithmetic Spiral. This spiral has the property that any ray from the origin intersects successive turnings at a constant separation distance.</p>
+      <div class="eq-block">r = θ<div class="eq-desc">Archimedes Spiral in Polar Coordinates — where r is the radial distance and θ is the angle</div></div>
+      <p class="analysis-prose">Unlike standard HAWTs (which use only lift) or VAWTs (which use only drag), the ASWT uses <strong>both lift and drag forces simultaneously</strong> (Kim et al., 2014). This makes standard Blade Element Momentum (BEM) theory inapplicable for performance prediction. Instead, a Computational Fluid Dynamics (CFD) model using Ansys Fluent was used to solve the Navier-Stokes equations via a meshing process — computing aerodynamic performance in millions of small cells. The efficiency value of <strong>Cp = 0.293</strong> was extracted from Jang et al. (2019).</p>
+    </div>
+
+    <div id="tab-windlens" class="tab-panel">
+      <p class="analysis-prose">The wind lens was first introduced for wind turbines by Yuji Ohya of Kyushu University. The ASWT wind lens contains: a vertical <strong>flange</strong>, a converging <strong>concentrator</strong>, a cylindrical <strong>connecting section</strong>, and a diverging <strong>diffuser</strong>. It operates on three principles:</p>
+      <div class="eq-block">A₁V₁ = A₂V₂<div class="eq-desc">Continuity Equation — increasing wind velocity as the concentrator cross-section area decreases</div></div>
+      <div class="eq-block">P₁ + ½ρv₁² + ρgh₁ = P₂ + ½ρv₂² + ρgh₂<div class="eq-desc">Bernoulli's Equation — increased velocity causes decreased static pressure, drawing more wind in</div></div>
+      <p class="analysis-prose">The diverging diffuser creates a high-pressure zone behind the lens. Combined with the low-pressure wake area, this creates a pressure drop that expands the mass flow rate. The flange causes air to decelerate and form high-velocity vortices near the inlet, creating low pressure that draws additional airflow — resulting in an <strong>80% enhancement</strong> in energy output relative to the bare ASWT.</p>
+    </div>
+
+    <div id="tab-tsr" class="tab-panel">
+      <p class="analysis-prose">The Tip Speed Ratio (TSR) describes the relationship between the tangential blade speed and the wind speed facing the turbine's swept area. The ASWT achieves peak power coefficient (Cp) when TSR is between 1.5 and 2.5.</p>
+      <div class="eq-block">λ = ωR / v<div class="eq-desc">TSR equation — λ: tip speed ratio, ω: angular velocity, R: radius (0.17 m), v: wind speed</div></div>
+      <p class="analysis-prose">At 5 m/s wind speed with ω = 35 rad/s, TSR = 1.7 — within the optimal range, meaning the prototype achieves high Cp at ~3.5 m/s wind speed. The mechanical torque was calculated as:</p>
+      <div class="eq-block">T = P / (Cp_motor · ω)<div class="eq-desc">Torque equation — at ω = 30 rad/s, P = 0.739 W, η = 70%, T = 0.0302 N·m</div></div>
+      <p class="analysis-prose">This torque gives the prototype a <strong>low cut-in speed of ~2 m/s</strong>, ensuring electricity generation in low-wind conditions typical of the Ras-Banas area.</p>
+    </div>
+
+    <div id="tab-energy" class="tab-panel">
+      <p class="analysis-prose">Wind power is calculated from the kinetic energy of moving air passing through the rotor swept area. Air density ρ = 1.22 kg/m³.</p>
+      <div class="eq-block">Pw = ½ρAv³<div class="eq-desc">Wind Power equation — at test conditions, Pw = 3.558 W</div></div>
+      <div class="eq-block">η = P_output / P_w<div class="eq-desc">System Efficiency — before enhancement: 0.208; after enhancement: 0.38</div></div>
+      <p class="analysis-prose">The twisted Archimedes spiral blade design increases torque at low wind speeds, while the wind lens amplifies the inlet wind velocity — together maximizing energy conversion. The total system efficiency nearly <strong>doubled from 20.8% to 38%</strong> after adding the wind lens. Energy losses occur primarily in the DC motor conversion (70% efficiency) and blade aerodynamic drag at off-optimal TSR values.</p>
+    </div>
+  </div>
+</section>
+
+<!-- CONCLUSION -->
+<section id="conclusion">
+  <div class="section-inner">
+    <span class="section-eyebrow">06 — Conclusions & Recommendations</span>
+    <h2 class="section-title">Looking Forward</h2>
+    <div class="divider"></div>
+    <p style="font-size:1.05rem;line-height:1.8;color:rgba(240,248,255,.8);max-width:800px;margin-bottom:48px">
+      The project successfully solved the stated problem and exceeded all design requirements. The ASWT with wind lens produced 221.7 J in 5 minutes — 47.8% above the 150 J requirement — with an 80% efficiency improvement from the wind lens alone. The prototype operates from 2 m/s wind speeds, accepts wind from any direction, and produces low noise, making it ideal for Ras-Banas and similar urban/coastal settings.
+    </p>
+    <div class="rec-grid">
+      <div class="rec-card">
+        <div class="rec-icon">🏗️</div>
+        <div class="rec-title">Real-life Scaling</div>
+        <div class="rec-text">Scale ratio 1:5 → length 0.75–3.75 m, width 0.72–3.6 m, height 0.42–2.1 m. Shaft and frame in stainless steel; spherical roller bearings model 22220; PMG-type generator; epoxy anti-corrosion coating.</div>
+      </div>
+      <div class="rec-card">
+        <div class="rec-icon">✈️</div>
+        <div class="rec-title">Carbon Fiber Blades</div>
+        <div class="rec-text">Carbon fiber offers tensile strength of 3,500–7,000 MPa, stiffness of 279 GPa, and resists solar heat up to 3,600 K. Its low density reduces rotor inertia, enabling even lower cut-in speeds. UV-resistant coating standard.</div>
+      </div>
+      <div class="rec-card">
+        <div class="rec-icon">🔋</div>
+        <div class="rec-title">Flywheel Energy Storage</div>
+        <div class="rec-text">Flywheel systems store 80–90% of input energy and respond in 4 milliseconds — stabilizing output when wind speed fluctuates. Ideal companion for the ASWT's variable wind environment in Ras-Banas.</div>
+      </div>
+    </div>
+
+    <div style="margin-top:48px;background:var(--glass);border:1px solid var(--border);border-radius:4px;padding:28px">
+      <h4 style="font-family:'Barlow Condensed';font-size:1rem;letter-spacing:.2em;text-transform:uppercase;color:var(--sky);margin-bottom:20px">Learning Outcomes Connected</h4>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:16px;font-size:.88rem;line-height:1.7;color:rgba(240,248,255,.75)">
+        <div style="background:rgba(10,159,212,.08);border:1px solid var(--border);padding:16px;border-radius:4px"><strong style="color:var(--sky)">PH.1.09 — Continuity Eq.</strong><br>Proving velocity argumentation for the concentrator inlet.</div>
+        <div style="background:rgba(10,159,212,.08);border:1px solid var(--border);padding:16px;border-radius:4px"><strong style="color:var(--sky)">PH.1.09 — Bernoulli Eq.</strong><br>Understanding the concentrator pressure difference driving mass flow.</div>
+        <div style="background:rgba(10,159,212,.08);border:1px solid var(--border);padding:16px;border-radius:4px"><strong style="color:var(--sky)">PH.1.09 — Laminar vs Turbulent</strong><br>Manipulating turbulent flow properties to enhance efficiency via the flange vortex.</div>
+        <div style="background:rgba(10,159,212,.08);border:1px solid var(--border);padding:16px;border-radius:4px"><strong style="color:var(--sky)">CH.1.09 — Malleability</strong><br>Choosing suitable materials for the turbine blades (PE plastic, carbon fiber).</div>
+        <div style="background:rgba(10,159,212,.08);border:1px solid var(--border);padding:16px;border-radius:4px"><strong style="color:var(--sky)">ES.1.09 — Energy Resources</strong><br>Analyzing pros and cons of wind energy vs fossil fuels for Egypt's grand challenges.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- TEAM -->
+<section id="team">
+  <div class="section-inner">
+    <span class="section-eyebrow">07 — The Team</span>
+    <h2 class="section-title">Meet the Builders</h2>
+    <div class="divider"></div>
+    <div class="team-grid">
+      <div class="member-card">
+        <div class="member-avatar">
+          <div style="font-size:3.5rem;color:rgba(10,159,212,.5)">👤</div>
+        </div>
+        <div class="member-info">
+          <div class="member-name">Abdelrahman Ahmed</div>
+          <div class="member-role">Team Member</div>
+          <div class="member-id">ID: 1025019</div>
+        </div>
+      </div>
+      <div class="member-card">
+        <div class="member-avatar">
+          <div style="font-size:3.5rem;color:rgba(10,159,212,.5)">👤</div>
+        </div>
+        <div class="member-info">
+          <div class="member-name">Ammar Ibrahim</div>
+          <div class="member-role">Team Member</div>
+          <div class="member-id">ID: 1025096</div>
+        </div>
+      </div>
+      <div class="member-card">
+        <div class="member-avatar">
+          <div style="font-size:3.5rem;color:rgba(10,159,212,.5)">👤</div>
+        </div>
+        <div class="member-info">
+          <div class="member-name">Khalid Osama</div>
+          <div class="member-role">Team Member</div>
+          <div class="member-id">ID: 1025075</div>
+        </div>
+      </div>
+      <div class="member-card">
+        <div class="member-avatar">
+          <div style="font-size:3.5rem;color:rgba(10,159,212,.5)">👤</div>
+        </div>
+        <div class="member-info">
+          <div class="member-name">Omar Mohamed</div>
+          <div class="member-role">Team Member</div>
+          <div class="member-id">ID: 1025100</div>
+        </div>
+      </div>
+      <div class="member-card">
+        <div class="member-avatar">
+          <div style="font-size:3.5rem;color:rgba(10,159,212,.5)">👤</div>
+        </div>
+        <div class="member-info">
+          <div class="member-name">Yahya Wael</div>
+          <div class="member-role">Team Member</div>
+          <div class="member-id">ID: 1025127</div>
+        </div>
+      </div>
+    </div>
+
+    <div style="margin-top:60px;background:var(--glass);border:1px solid var(--border);border-radius:4px;padding:28px">
+      <h4 style="font-family:'Barlow Condensed';font-size:1rem;letter-spacing:.2em;text-transform:uppercase;color:var(--sky);margin-bottom:14px">Acknowledgements</h4>
+      <p style="font-size:.95rem;line-height:1.8;color:rgba(240,248,255,.75)">
+        We start by thanking <strong>Allah</strong> for enabling us to complete this project. Special thanks to <strong>Mr. Mohamed Bekheet</strong> (Capstone General), <strong>Mrs. Dalia Hammad</strong> (Capstone Leader), and <strong>Mr. Mohamed Hamdy</strong> (Capstone Teacher) for their invaluable guidance and support throughout the project.
+      </p>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-logo">ARCHIMEDES <span>REBORN</span></div>
+  <div class="footer-meta">Project #10112 · Grade 10 · Semester 2 (2025–2026)</div>
+  <div class="footer-school">STEM High School for Boys · 6th of October</div>
+</footer>
+
+<script>
+  let windSpeed = 0;
+
+  function spawnParticle() {
+    return {
+      x: 0,
+      y: CY - 60 + Math.random() * 120,
+      vx: 2 + Math.random() * 2,
+      vy: (Math.random() - 0.5) * 0.5,
+      size: 1 + Math.random() * 1.5,
+      opacity: 0.6 + Math.random() * 0.4,
+      life: 1,
+      deflected: false,
+      color: 'rgba(10,159,212,'
+    };
+  }
+
+  function drawArchimedesSpiral(cx, cy, bladeAngle, bladeIndex) {
+    const totalAngle = 2.8 * Math.PI;
+    const turns = 28;
+    const startR = 6;
+    const endR = BLADE_R;
+    const rotOffset = bladeAngle + (bladeIndex * Math.PI * 2 / 3);
+
+    ctx.beginPath();
+    for (let i = 0; i <= turns; i++) {
+      const t = i / turns;
+      const r = startR + (endR - startR) * t;
+      const a = t * totalAngle + rotOffset;
+      const px = cx + r * Math.cos(a);
+      const py = cy + r * Math.sin(a);
+      if (i === 0) ctx.moveTo(px, py);
+      else ctx.lineTo(px, py);
+    }
+
+    const alpha = 0.6 + bladeIndex * 0.15;
+    const bladeColors = [
+      `rgba(10,159,212,${alpha})`,
+      `rgba(0,200,255,${alpha - 0.1})`,
+      `rgba(5,130,180,${alpha + 0.1})`
+    ];
+    ctx.strokeStyle = bladeColors[bladeIndex % 3];
+    ctx.lineWidth = 3;
+    ctx.stroke();
+  }
+
+  function drawTurbine(a) {
+    // Draw 3 spiral blades
+    for (let i = 0; i < 3; i++) {
+      drawArchimedesSpiral(CX, CY, a, i);
+    }
+    // Glow ring
+    const grd = ctx.createRadialGradient(CX, CY, BLADE_R - 10, CX, CY, BLADE_R + 10);
+    grd.addColorStop(0, 'rgba(10,159,212,0.15)');
+    grd.addColorStop(1, 'transparent');
+    ctx.beginPath();
+    ctx.arc(CX, CY, BLADE_R, 0, Math.PI * 2);
+    ctx.strokeStyle = 'rgba(10,159,212,0.2)';
+    ctx.lineWidth = 1;
+    ctx.stroke();
+    // Hub
+    ctx.beginPath();
+    ctx.arc(CX, CY, 7, 0, Math.PI * 2);
+    ctx.fillStyle = '#0a9fd4';
+    ctx.fill();
+  }
+
+  function drawWindLens() {
+    // Wind lens - funnel shape on left
+    const lensLeft = CX - 160;
+    const lensMid = CX - BLADE_R - 8;
+    // Concentrator (converging)
+    ctx.beginPath();
+    ctx.moveTo(lensLeft, CY - 90);
+    ctx.lineTo(lensMid, CY - BLADE_R);
+    ctx.lineTo(lensMid, CY + BLADE_R);
+    ctx.lineTo(lensLeft, CY + 90);
+    ctx.closePath();
+    ctx.fillStyle = 'rgba(10,159,212,0.07)';
+    ctx.strokeStyle = 'rgba(10,159,212,0.4)';
+    ctx.lineWidth = 1.5;
+    ctx.fill(); ctx.stroke();
+
+    // Diffuser (diverging) on right
+    const diffStart = CX + BLADE_R + 8;
+    const diffEnd = CX + BLADE_R + 60;
+    ctx.beginPath();
+    ctx.moveTo(diffStart, CY - BLADE_R);
+    ctx.lineTo(diffEnd, CY - 100);
+    ctx.lineTo(diffEnd, CY + 100);
+    ctx.lineTo(diffStart, CY + BLADE_R);
+    ctx.closePath();
+    ctx.fillStyle = 'rgba(245,200,66,0.05)';
+    ctx.strokeStyle = 'rgba(245,200,66,0.35)';
+    ctx.lineWidth = 1.5;
+    ctx.fill(); ctx.stroke();
+
+    // Flange
+    ctx.beginPath();
+    ctx.moveTo(lensLeft - 8, CY - 100);
+    ctx.lineTo(lensLeft - 8, CY + 100);
+    ctx.strokeStyle = 'rgba(10,159,212,0.6)';
+    ctx.lineWidth = 2.5;
+    ctx.stroke();
+
+    // Labels
+    ctx.font = '500 9px Barlow Condensed, sans-serif';
+    ctx.fillStyle = 'rgba(10,159,212,0.55)';
+    ctx.fillText('FLANGE', lensLeft - 30, CY - 104);
+    ctx.fillText('CONCENTRATOR', lensLeft + 12, CY - 76);
+    ctx.fillStyle = 'rgba(245,200,66,0.5)';
+    ctx.fillText('DIFFUSER', diffStart + 6, CY - 104);
+  }
+
+  function drawParticles() {
+    const lensEntry = CX - BLADE_R - 8;
+    const turbineRight = CX + BLADE_R + 8;
+    particles.forEach(p => {
+      if (!p.deflected && p.x >= lensEntry && p.x <= turbineRight &&
+          p.y > CY - BLADE_R && p.y < CY + BLADE_R) {
+        p.deflected = true;
+        const r = Math.random();
+        if (r < 0.4) { p.vy = -1.8 - Math.random() * 1.5; p.vx *= 0.6; p.color = 'rgba(245,200,66,'; }
+        else if (r < 0.65) { p.vy = 1.8 + Math.random() * 1.5; p.vx *= 0.6; p.color = 'rgba(245,200,66,'; }
+        else { p.vx *= 1.4; }
+      }
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+      ctx.fillStyle = p.color + (p.opacity * p.life) + ')';
+      ctx.fill();
+    });
+  }
+
+  let spawnTimer = 0, lastTime = 0;
+  function loop(ts) {
+    const dt = Math.min((ts - lastTime) / 1000, 0.05);
+    lastTime = ts;
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    const targetRpm = windSpeed * windSpeed * 1.8;
+    const accel = (targetRpm - rpm) * 2.5;
+    rpm = Math.max(0, rpm + accel * dt);
+    angle += (rpm / 60) * Math.PI * 2 * dt;
+
+    if (windSpeed > 0.3) {
+      spawnTimer += dt;
+      const rate = windSpeed * 3.5;
+      if (spawnTimer > 1 / rate) { spawnTimer = 0; particles.push(spawnParticle()); }
+    }
+    particles.forEach(p => {
+      p.x += p.vx * (windSpeed * 0.75 + 0.5) * dt * 60 * 0.18;
+      p.y += p.vy * dt * 60 * 0.18;
+      p.life -= dt * 0.45;
+    });
+    particles = particles.filter(p => p.life > 0 && p.x < canvas.width + 20);
+
+    drawWindLens();
+    drawParticles();
+    drawTurbine(angle);
+    requestAnimationFrame(loop);
+  }
+  requestAnimationFrame(ts => { lastTime = ts; requestAnimationFrame(loop); });
+
+  const slider = document.getElementById('windSlider');
+  const windValDisplay = document.getElementById('windValDisplay');
+  slider.addEventListener('input', () => {
+    windSpeed = parseFloat(slider.value);
+    windValDisplay.textContent = windSpeed.toFixed(1) + ' m/s';
+  });
+
+  // Wind lines
+  const wlContainer = document.getElementById('windLines');
+  for (let i = 0; i < 14; i++) {
+    const wl = document.createElement('div');
+    wl.className = 'wl';
+    const top = 5 + Math.random() * 90;
+    const width = 80 + Math.random() * 260;
+    const delay = Math.random() * 5;
+    const duration = 3 + Math.random() * 3;
+    wl.style.cssText = `top:${top}%;width:${width}px;left:0;animation-delay:${delay}s;animation-duration:${duration}s;`;
+    wlContainer.appendChild(wl);
+  }
+
+  // Tabs
+  function showTab(id) {
+    document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.getElementById('tab-' + id).classList.add('active');
+    event.currentTarget.classList.add('active');
+  }
+
+  // Animate bars on scroll
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        e.target.querySelectorAll('.ib-fill').forEach(b => {
+          const pct = b.style.getPropertyValue('--pct') || getComputedStyle(b).getPropertyValue('--pct');
+          b.style.width = pct;
+        });
+      }
+    });
+  }, { threshold: .3 });
+  document.querySelectorAll('#results').forEach(s => observer.observe(s));
+</script>
+</body>
+</html>
